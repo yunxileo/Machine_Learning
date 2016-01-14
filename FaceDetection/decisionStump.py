@@ -41,7 +41,7 @@ class DecisionStump:
 
         string  = "opt_threshold:" + str(self.opt_threshold) + "\n"
         string += "opt_demention:" + str(self.opt_demention) + "\n"
-        string += "opt_errorRate:" + str(self.opt_errorRate) + "\n"
+        string += "opt_cost     :" + str(self.opt_cost)      + "\n"
         string += "opt_label    :" + str(self.opt_label    ) + "\n"
         string += "weights      :" + str(self.weight)        + "\n"
 
