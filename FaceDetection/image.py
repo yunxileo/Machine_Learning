@@ -101,24 +101,16 @@ class Image:
     window is @width * @height
     """
 
-    def rectangleSum(self, x, y, width, height):
+    def vecRectangleSum(self, x, y, width, height):
+        idxVector = [1 for i in range(self.Row * self.Col)]
         if x == 0 and y == 0:
-            return self.iimg[y + height - 1][ x + width - 1]
-
+            return idxVector[width * height + 2] = 1
         elif x == 0:
-            return self.iimg[y + height - 1][x + width - 1] - \
-                   self.iimg[y          - 1][x + width - 1]
-
+            (width - 1) * self.Row + y
+            return idxVector[]
         elif y == 0:
-            return self.iimg[y + height - 1][x + width - 1] - \
-                   self.iimg[y + height - 1][x         - 1]
 
         else:
-            return self.iimg[y + height - 1][x + width - 1] + \
-                   self.iimg[y          - 1][x         - 1] - \
-                   self.iimg[y + height - 1][x         - 1] - \
-                   self.iimg[y          - 1][x + width - 1]
-
 
     def __featureTypeI(self, x, y, width, height):
         return self.rectangleSum(x, y         , width, height) - \
