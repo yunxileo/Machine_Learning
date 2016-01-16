@@ -35,6 +35,17 @@ def saveModel(model):
     fileObj.flush()
     fileObj.close()
 
+def cmpHaarFeat(imgFace, imgNonFace, feature = "A"):
+    if feature == "A":
+        for i in range(0, len(imgFace.haarA), 10):
+            pyplot.plot(i, imgFace.haarA[i],    "or")
+            pyplot.plot(i, imgNonFace.haarA[i], "ob")
+    else:
+        for i in range(0, len(imgFace.haarB), 10):
+            pyplot.plot(i, imgFace.haarB[i],    "or")
+            pyplot.plot(i, imgNonFace.haarB[i], "ob")
+
+    pyplot.show()
 
 ##################################################################
 
@@ -50,6 +61,8 @@ if os.stat(FEATURE_FILE_TRAINING).st_size == 0:
 
     TrainingSetNonFace   = ImageSet(TRAINING_NONFACE, 
                                     sampleNum = NEGATIVE_SAMPLE)
+
+    cmpHaarFeat(TrainingSetFace.images[0], TrainingSetNonFace.images[0], feature = "A")
 
     Original_Data_Face = [
          TrainingSetFace.images[i].haarA + 

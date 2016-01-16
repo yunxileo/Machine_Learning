@@ -123,11 +123,11 @@ class DecisionStump:
                     self.opt_threshold = th
                     self.opt_label     = label
 
-        output = self.prediction(self._Mat)
+        #output = self.prediction(self._Mat)
 
-        errorRate = numpy.count_nonzero(output == self._Tag) * 1. / self.SampleNum
+        #errorRate = numpy.count_nonzero(output == self._Tag) * 1. / self.SampleNum
 
-        return errorRate
+        return self.opt_cost
 
 
     def show(self, d):

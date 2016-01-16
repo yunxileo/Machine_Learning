@@ -59,7 +59,6 @@ class AdaBoost:
 
 
     def is_good_enough(self):
-        self.N += 1
 
         output = self.prediction(self._Mat)
 
@@ -84,6 +83,8 @@ class AdaBoost:
 	"""
 
         for m in range(M):
+            self.N += 1
+
             self.G[m] = self.Weaker(self._Mat, self._Tag, self.W)
             
             errorRate = self.G[m].train(steps = self.SamplesNum)
