@@ -53,7 +53,7 @@ if os.stat(FEATURE_FILE_TRAINING).st_size == 0:
     Row = TrainingSetFace.images[0].Row
     Col = TrainingSetFace.images[0].Col
 
-    haar = Feature(SEARCH_WIN_HEIGHT,  SEARCH_WIN_WIDTH, Row, Col)
+    haar = Feature(SEARCH_WIN_WIDTH, SEARCH_WIN_HEIGHT,Row, Col)
 
     Original_Data = [[] for i in range(len(haar.features))]
 

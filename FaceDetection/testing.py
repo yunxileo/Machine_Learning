@@ -13,6 +13,7 @@ import numpy
 import os
 from config import *
 from adaboost import AdaBoost
+from haarFeature import Feature
 
 #FEATURE_FILE_TESTING = FEATURE_FILE_TRAINING
 #
@@ -29,30 +30,46 @@ if os.stat(FEATURE_FILE_TESTING).st_size == 0:
     TestSetFace          = ImageSet(TEST_FACE, sampleNum = TESTING_POSITIVE_SAMPLE)
     TestSetNonFace       = ImageSet(TEST_NONFACE, sampleNum = TESTING_NEGATIVE_SAMPLE)
 
-    Original_Data_Face = [
-        TestSetFace.images[i].haarA +
-        TestSetFace.images[i].haarB +
-        TestSetFace.images[i].haarC +
-        TestSetFace.images[i].haarD
-        for i in range(TestSetFace.sampleNum)
-        ]
+    Row = TestSetFace.images[0].Row
+    Col = TestSetFace.images[0].Col
 
-    Original_Data_NonFace =[ 
-         TestSetNonFace.images[i].haarA +
-         TestSetNonFace.images[i].haarB +
-         TestSetNonFace.images[i].haarC +
-         TestSetNonFace.images[i].haarD 
-        for i in range(TestSetNonFace.sampleNum)
-        ]
+    haar = Feature(SEARCH_WIN_HEIGHT, SEARCH_WIN_HEIGHT, Row, Col)
 
-    Original_Data = numpy.array(Original_Data_Face + \
-                        Original_Data_NonFace).transpose()
+    Original_Data = [[] for i in range(len(haar.features))]
+
+    dem = 0
+    for feature in haar.features:
+        (types, x, y, w, h) = feature
+
+        for i in range(TestSetFace.sampleNum):
+            if types == "I":
+                Original_Data[dem].append(haar.VecFeatureTypeI( TestSetFace.images[i].vecImg, x, y, w, h))
+            elif types == "II":
+                Original_Data[dem].append(haar.VecFeatureTypeII( TestSetFace.images[i].vecImg, x, y, w, h))
+            elif types == "III":
+                Original_Data[dem].append(haar.VecFeatureTypeIII( TestSetFace.images[i].vecImg, x, y, w, h))
+            elif types == "IV":
+                Original_Data[dem].append(haar.VecFeatureTypeIV( TestSetFace.images[i].vecImg, x, y, w, h))
+
+        for i in range(TestSetNonFace.sampleNum):
+            if types == "I":
+                Original_Data[dem].append(haar.VecFeatureTypeI( TestSetNonFace.images[i].vecImg, x, y, w, h))
+            elif types == "II":
+                Original_Data[dem].append(haar.VecFeatureTypeII( TestSetNonFace.images[i].vecImg, x, y, w, h))
+            elif types == "III":
+                Original_Data[dem].append(haar.VecFeatureTypeIII( TestSetNonFace.images[i].vecImg, x, y, w, h))
+            elif types == "IV":
+                Original_Data[dem].append(haar.VecFeatureTypeIV( TestSetNonFace.images[i].vecImg, x, y, w, h))
+
+        dem += 1
+
+        print "processed: dem= ", dem
+
+    Original_Data = numpy.array(Original_Data)
 
     for i in range(Original_Data.shape[0]):
         for j in range(Original_Data.shape[1]):
             fileObj.write(str(Original_Data[i][j]) + "\n")
-
-    Original_Data = Original_Data[::150, :]
 
     fileObj.flush()
 else:
@@ -63,12 +80,11 @@ else:
 
     Original_Data = []
     for i in range(FEATURE_NUM):
-        if i % 150 == 0:
-            haarGroup = []
-            for j in range(i * TESTING_SAMPLE_NUM, (i+1) * TESTING_SAMPLE_NUM):
-                haarGroup.append(float(tmp[j]))
+        haarGroup = []
+        for j in range(i * TESTING_SAMPLE_NUM, (i+1) * TESTING_SAMPLE_NUM):
+            haarGroup.append(float(tmp[j]))
 
-            Original_Data.append(haarGroup)
+        Original_Data.append(haarGroup)
 
     Original_Data = numpy.array(Original_Data)
 
@@ -84,7 +100,7 @@ a = AdaBoost(train = False)
 
 for i in range(0, len(tmp), 4):
 
-    alpha, demention, label, threshold = None, None, None, None
+    alpha, demention, direction, threshold = None, None, None, None
 
     for j in range(i, i + 4):
         if (j % 4) == 0:
@@ -92,12 +108,12 @@ for i in range(0, len(tmp), 4):
         elif (j % 4) == 1:
             demention = int(tmp[j])
         elif (j % 4) == 2:
-            label = float(tmp[j])
+            direction = float(tmp[j])
         elif (j % 4) == 3:
             threshold = float(tmp[j])
 
     classifier = a.Weaker(train = False)
-    classifier.constructor(demention, label, threshold)
+    classifier.constructor(demention, direction, threshold)
     a.G[i/4] = classifier
     a.alpha[i/4] = alpha
     a.N += 1
