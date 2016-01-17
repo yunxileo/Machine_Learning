@@ -4,16 +4,18 @@ File        :   tester.py
 Date        :   2015.12.29
 E-mail      :   jasonleaster@163.com
 
-Description :
-
 """
-from image import ImageSet
+
 from matplotlib import pyplot
 import numpy
 import os
+
 from config import *
 from adaboost import AdaBoost
-
+from image import ImageSet
+from haarFeature import Feature
+from weakClassifier import WeakClassifier
+from vecProduct import VecProduct
 """
 function @saveModel save the key data member of AdaBoost 
 into a template file @ADABOOST_FILE
@@ -29,25 +31,11 @@ def saveModel(model):
     for m in range(model.N):
         fileObj.write(str(model.alpha[m]) + "\n")
         fileObj.write(str(model.G[m].opt_demention) + "\n")
-        fileObj.write(str(model.G[m].opt_label) + "\n")
+        fileObj.write(str(model.G[m].opt_direction) + "\n")
         fileObj.write(str(model.G[m].opt_threshold) + "\n")
 
     fileObj.flush()
     fileObj.close()
-
-def cmpHaarFeat(imgFace, imgNonFace, feature = "A"):
-    if feature == "A":
-        for i in range(0, len(imgFace.haarA), 10):
-            pyplot.plot(i, imgFace.haarA[i],    "or")
-            pyplot.plot(i, imgNonFace.haarA[i], "ob")
-    else:
-        for i in range(0, len(imgFace.haarB), 10):
-            pyplot.plot(i, imgFace.haarB[i],    "or")
-            pyplot.plot(i, imgNonFace.haarB[i], "ob")
-
-    pyplot.show()
-
-##################################################################
 
 fileObj = open(FEATURE_FILE_TRAINING, "a+")
 
@@ -62,57 +50,65 @@ if os.stat(FEATURE_FILE_TRAINING).st_size == 0:
     TrainingSetNonFace   = ImageSet(TRAINING_NONFACE, 
                                     sampleNum = NEGATIVE_SAMPLE)
 
-    cmpHaarFeat(TrainingSetFace.images[0], TrainingSetNonFace.images[0], feature = "A")
+    Row = TrainingSetFace.images[0].Row
+    Col = TrainingSetFace.images[0].Col
 
-    Original_Data_Face = [
-         TrainingSetFace.images[i].haarA + 
-         TrainingSetFace.images[i].haarB + 
-         TrainingSetFace.images[i].haarC +
-         TrainingSetFace.images[i].haarD +
-         TrainingSetFace.images[i].haarE
-        for i in range(TrainingSetFace.sampleNum)
-        ]
+    haar = Feature(SEARCH_WIN_HEIGHT,  SEARCH_WIN_WIDTH, Row, Col)
 
-    Original_Data_NonFace = [ 
-         TrainingSetNonFace.images[i].haarA +
-         TrainingSetNonFace.images[i].haarB +
-         TrainingSetNonFace.images[i].haarC +
-         TrainingSetNonFace.images[i].haarD +
-         TrainingSetNonFace.images[i].haarE 
-        for i in range(TrainingSetNonFace.sampleNum)
-        ]
+    Original_Data = [[] for i in range(len(haar.features))]
 
-    Original_Data = numpy.array(Original_Data_Face + \
-                        Original_Data_NonFace).transpose()
+    dem = 0
+    for feature in haar.features:
+        (types, x, y, w, h) = feature
 
+        for i in range(TrainingSetFace.sampleNum):
+            if types == "I":
+                Original_Data[dem].append(haar.VecFeatureTypeI( TrainingSetFace.images[i].vecImg, x, y, w, h))
+            elif types == "II":
+                Original_Data[dem].append(haar.VecFeatureTypeII( TrainingSetFace.images[i].vecImg, x, y, w, h))
+            elif types == "III":
+                Original_Data[dem].append(haar.VecFeatureTypeIII( TrainingSetFace.images[i].vecImg, x, y, w, h))
+            elif types == "IV":
+                Original_Data[dem].append(haar.VecFeatureTypeIV( TrainingSetFace.images[i].vecImg, x, y, w, h))
+
+        for i in range(TrainingSetNonFace.sampleNum):
+            if types == "I":
+                Original_Data[dem].append(haar.VecFeatureTypeI( TrainingSetNonFace.images[i].vecImg, x, y, w, h))
+            elif types == "II":
+                Original_Data[dem].append(haar.VecFeatureTypeII( TrainingSetNonFace.images[i].vecImg, x, y, w, h))
+            elif types == "III":
+                Original_Data[dem].append(haar.VecFeatureTypeIII( TrainingSetNonFace.images[i].vecImg, x, y, w, h))
+            elif types == "IV":
+                Original_Data[dem].append(haar.VecFeatureTypeIV( TrainingSetNonFace.images[i].vecImg, x, y, w, h))
+
+        dem += 1
+
+        print "processed: dem = " , dem
+
+    Original_Data = numpy.array(Original_Data)
     for i in range(Original_Data.shape[0]):
         for j in range(Original_Data.shape[1]):
             fileObj.write(str(Original_Data[i][j]) + "\n")
-
-    Original_Data = Original_Data[::8, :]
 
     fileObj.flush()
 else:
     print "Haar features have been calculated."
     print "Loading features ..."
-
     tmp = fileObj.readlines()
 
     Original_Data = []
     for i in range(FEATURE_NUM):
-        if i % 8 == 0:
-            haarGroup = []
-            for j in range(i * SAMPLE_NUM , (i+1) * SAMPLE_NUM):
-                haarGroup.append(float(tmp[j]))
+        haarGroup = []
+        for j in range(i * SAMPLE_NUM , (i+1) * SAMPLE_NUM):
+            haarGroup.append(float(tmp[j]))
 
-            Original_Data.append(haarGroup)
+        Original_Data.append(haarGroup)
 
     Original_Data = numpy.array(Original_Data)
 
 
 fileObj.close()
 
-SampleDem = Original_Data.shape[0]
 SampleNum = Original_Data.shape[1]
 
 assert SampleNum == (POSITIVE_SAMPLE + NEGATIVE_SAMPLE)
@@ -131,4 +127,3 @@ except KeyboardInterrupt:
     print "You pressed interrupt key. Training process interrupt."
 
 saveModel(a)
-

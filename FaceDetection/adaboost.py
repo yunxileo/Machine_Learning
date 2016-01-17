@@ -12,14 +12,13 @@ Thanks Wei Chen. Without him, I can't understand AdaBoost in this short time. We
 
 """
 from config import *
-
+from weakClassifier import WeakClassifier
 import numpy
-from decisionStump import *
 import matplotlib.pyplot as pyplot
 
 class AdaBoost:
 
-    def __init__(self, Mat = None, Tag = None, WeakerClassifier = DecisionStump, train = True):
+    def __init__(self, Mat = None, Tag = None, WeakerClassifier = None, train = True):
         """
         self._Mat: A matrix which store the samples. Every column 
                    vector in this matrix is a point of sample.
@@ -40,17 +39,14 @@ class AdaBoost:
 
 
             # Initialization of weight
-            """
             pos_W = [1.0/(2 * POSITIVE_SAMPLE) for i in range(POSITIVE_SAMPLE)]
 
             neg_W = [1.0/(2 * NEGATIVE_SAMPLE) for i in range(NEGATIVE_SAMPLE)]
             self.W = pos_W + neg_W
-            """
-            self.W = [1.0/self.SamplesNum for i in range(SAMPLE_NUM)]
 
             self.accuracy = []
 
-        self.Weaker = WeakerClassifier
+        self.Weaker = WeakClassifier
 
         self.G = {}
         self.alpha = {}
@@ -87,7 +83,7 @@ class AdaBoost:
 
             self.G[m] = self.Weaker(self._Mat, self._Tag, self.W)
             
-            errorRate = self.G[m].train(steps = self.SamplesNum)
+            errorRate = self.G[m].train()
 
             self.alpha[m] = numpy.log((1-errorRate)/errorRate)
 

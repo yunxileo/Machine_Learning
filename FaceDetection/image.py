@@ -29,9 +29,7 @@ class Image:
 
         self.iimg    = self.__integrateImg()
 
-        self.featureTypes = ["I", "II", "III", "IV"]
-
-        self.haarFeatureVal = []
+        self.vecImg  = self.iimg.transpose().flatten()
 
     def __integrateImg(self):
         image = self.stdImg
@@ -56,7 +54,7 @@ class Image:
     def __normalization(self):
         image = self.img
 
-        #@nImag normalized image
+        #@stdImag standardized image
         stdImg = numpy.array([ [0. for i in range(self.Col)] 
                                    for j in range(self.Row)])
         sigma = 0.
@@ -72,127 +70,13 @@ class Image:
 
         return stdImg
 
-    """
-    Types of Haar-like rectangle features
-      
-     --- ---      --- ---
-    |   |   |    |   +   |
-    | + | - |    |-------|
-    |   |   |    |   -   |
-     --- ---      -------
-       A            B
-
-     -- -- --     -------
-    |  |  |  |   |___-___|       
-    |- | +| -|   |___+___|
-    |  |  |  |   |   -   |
-     -- -- --     -------
-        C            D
-
-     --- ---
-    | - | + |
-    |___|___|
-    | + | - |
-    |___|___|
-        E
-
-    For each feature pattern, the start point(x, y) is at 
-    the most left-up pixel in that window. The size of that
-    window is @width * @height
-    """
-
-    def vecRectangleSum(self, x, y, width, height):
-        idxVector = [1 for i in range(self.Row * self.Col)]
-        if x == 0 and y == 0:
-            return idxVector[width * height + 2] = 1
-        elif x == 0:
-            (width - 1) * self.Row + y
-            return idxVector[]
-        elif y == 0:
-
-        else:
-
-    def __featureTypeI(self, x, y, width, height):
-        return self.rectangleSum(x, y         , width, height) - \
-               self.rectangleSum(x, y + height, width, height)
-
-    def __featureTypeII(self, x, y, width, height):
-        return self.rectangleSum(x + width, y, width, height) - \
-               self.rectangleSum(x        , y, width, height)
-
-    def __featureTypeIII(self, x, y, width, height):
-        return self.rectangleSum(x + width, y, width, height) - \
-               self.rectangleSum(x        , y, width, height) - \
-               self.rectangleSum(x+2*width, y, width, height)
-
-    def __featureTypeIV(self, x, y, width, height):
-        return self.rectangleSum(x + width, y         , width, height) + \
-               self.rectangleSum(x        , y + height, width, height) - \
-               self.rectangleSum(x        , y         , width, height) - \
-               self.rectangleSum(x + width, y + height, width, height)
-
-    def evalFeatures(self, win_Width, win_Height):
-        height_Limite = {"I"  : win_Height/2 - 1,
-                         "II" : win_Height   - 1,
-                         "III": win_Height   - 1,
-                         "IV" : win_Height/2 - 1}
-
-        width_Limit  = {"I"   : win_Width   - 1,
-                        "II"  : win_Width/2 - 1,
-                        "III" : win_Width/3 - 1,
-                        "IV"  : win_Width/2 - 1}
-
-        features = []
-        for types in self.featureTypes:
-            for h in range(1, height_Limite[types]):
-                for w in range(1, width_Limit[types]):
-                    if types == "I":
-                        x_limit = win_Width  - w   
-                        y_limit = win_Height - 2*h 
-                    elif types == "II":
-                        x_limit = win_Width  - 2*w 
-                        y_limit = win_Height - h   
-                    elif types == "III":
-                        x_limit = win_Width  - 3*w 
-                        y_limit = win_Height - h   
-                    elif types == "IV":
-                        x_limit = win_Width  - 2*w 
-                        y_limit = win_Height - 2*h 
-
-                    for x in range(1, x_limit):
-                        for y in range(1, y_limit):
-                            features.append( [types, x, y, w, h])
-
-        return features
-
-
-    def calFeatures(self, features):
-        # features[i] == [types, x, y, w, h]
-
-        for i in range(len(features)):
-            (types, x, y, w, h) = [val for val in features[i]]
-
-            if features[i][0] == "I":
-                func = self.__featureTypeI
-            elif features[i][0] == "II":
-                func = self.__featureTypeII
-            elif features[i][0] == "III":
-                func = self.__featureTypeIII
-            elif features[i][0] == "VI":
-                func = self.__featureTypeIV
-            else:
-                raise ValueError("Undefined feature type!")
-
-
-            self.haarFeatureVal.append( func(x, y, w, h))
-            
-
     def show(self, image = None):
         if image == None:
             image = self.img
 
         pyplot.imshow(image)
         pylab.show()
+
 
 class ImageSet:
     def __init__(self, imgDir = None, label = None, sampleNum = None):
@@ -210,6 +94,7 @@ class ImageSet:
         self.setLabel  = label
 
         self.images = [None for i in range(self.sampleNum)]
+
         processed = -10.
         for i in range(self.sampleNum):
             self.images[i] = Image(imgDir + self.fileList[i], label)
