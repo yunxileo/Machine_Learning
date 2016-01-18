@@ -1,4 +1,5 @@
 train:
+	mkdir ~/.trash/
 	python ./training.py
 
 test:
@@ -7,3 +8,6 @@ test:
 clean:
 	mv ./features/* ~/.trash/
 	mv ./model.tmp ~/.trash/
+
+rmPyc:
+	mv ./*.pyc ~/.trash/

@@ -37,6 +37,15 @@ def saveModel(model):
     fileObj.flush()
     fileObj.close()
 
+def saveOriginalDate(Original_Data):
+    Original_Data = numpy.array(Original_Data)
+    for i in range(Original_Data.shape[0]):
+        for j in range(Original_Data.shape[1]):
+            fileObj.write(str(Original_Data[i][j]) + "\n")
+
+    fileObj.flush()
+
+
 fileObj = open(FEATURE_FILE_TRAINING, "a+")
 
 # if that is a empty file
@@ -85,12 +94,7 @@ if os.stat(FEATURE_FILE_TRAINING).st_size == 0:
 
         print "processed: dem = " , dem
 
-    Original_Data = numpy.array(Original_Data)
-    for i in range(Original_Data.shape[0]):
-        for j in range(Original_Data.shape[1]):
-            fileObj.write(str(Original_Data[i][j]) + "\n")
-
-    fileObj.flush()
+    saveOriginalDate(Original_Data)
 else:
     print "Haar features have been calculated."
     print "Loading features ..."

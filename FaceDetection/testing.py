@@ -7,13 +7,15 @@ E-mail      :   jasonleaster@163.com
 Description :
 
 """
-from image import ImageSet
 from matplotlib import pyplot
 import numpy
 import os
+
+from image import ImageSet
 from config import *
 from adaboost import AdaBoost
 from haarFeature import Feature
+from getCachedAdaBoost import getCachedAdaBoost
 
 #FEATURE_FILE_TESTING = FEATURE_FILE_TRAINING
 #
@@ -33,7 +35,7 @@ if os.stat(FEATURE_FILE_TESTING).st_size == 0:
     Row = TestSetFace.images[0].Row
     Col = TestSetFace.images[0].Col
 
-    haar = Feature(SEARCH_WIN_HEIGHT, SEARCH_WIN_HEIGHT, Row, Col)
+    haar = Feature(SEARCH_WIN_WIDTH, SEARCH_WIN_HEIGHT, Col, Row)
 
     Original_Data = [[] for i in range(len(haar.features))]
 
@@ -90,38 +92,9 @@ else:
 
 fileObj.close()
 
-fileObj = open(ADABOOST_FILE, "a+")
+model = getCachedAdaBoost()
 
-print "Constructing AdaBoost from existed model data"
-
-tmp = fileObj.readlines()
-
-a = AdaBoost(train = False)
-
-for i in range(0, len(tmp), 4):
-
-    alpha, demention, direction, threshold = None, None, None, None
-
-    for j in range(i, i + 4):
-        if (j % 4) == 0:
-            alpha = float(tmp[j])
-        elif (j % 4) == 1:
-            demention = int(tmp[j])
-        elif (j % 4) == 2:
-            direction = float(tmp[j])
-        elif (j % 4) == 3:
-            threshold = float(tmp[j])
-
-    classifier = a.Weaker(train = False)
-    classifier.constructor(demention, direction, threshold)
-    a.G[i/4] = classifier
-    a.alpha[i/4] = alpha
-    a.N += 1
-
-print "Construction finished"
-fileObj.close()
-
-output = a.prediction(Original_Data)
+output = model.prediction(Original_Data)
 
 print numpy.count_nonzero(output[0:TESTING_POSITIVE_SAMPLE] > 0) * 1./ TESTING_POSITIVE_SAMPLE
 
