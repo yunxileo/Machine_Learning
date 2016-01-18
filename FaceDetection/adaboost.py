@@ -74,8 +74,26 @@ class AdaBoost:
 
         self.detectionRate = numpy.count_nonzero(output[0:POSITIVE_SAMPLE] == 1) * 1./ POSITIVE_SAMPLE
 
-        if self.accuracy[self.N-1] > AB_EXPECTED_DETECTION_RATE\
-            and self.detectionRate > AB_EXPECTED_ACCURACY:
+        Num_tp = 0 # Number of true positive
+        Num_fn = 0 # Number of false negative
+        Num_tn = 0 # Number of true negative
+        Num_fp = 0 # Number of false positive
+        for i in range(self.SamplesNum):
+            if self._Tag[i] == LABEL_POSITIVE:
+                if output[i] == LABEL_POSITIVE:
+                    Num_tp += 1
+                else:
+                    Num_fn += 1
+            else:
+                if output[i] == LABEL_POSITIVE:
+                    Num_fp += 1
+                else:
+                    Num_tn += 1
+
+        self.tpr = Num_tp * 1./(Num_tp + Num_fn)
+        self.fpr = Num_fp * 1./(Num_tn + Num_fp)
+
+        if self.tpr > 0.9 and self.fpr < 0.15:
             return True
 
     def train(self, M = 4):
